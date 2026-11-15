@@ -1,0 +1,10 @@
+{
+  "name": "solicitudpro",
+  "private": true,
+  "scripts": {
+    "build": "node --check js/demo-i18n.js && node --check js/script.js && node --check js/request-detail.js && node --check js/real-product.js",
+    "dev:c13b-fixture": "node scripts/c13b-dev-fixture.js --dev-fixture",
+    "test": "node --test tests/*.js",
+    "dev:test-request": "node scripts/dev-test-request.js"
+  }
+}

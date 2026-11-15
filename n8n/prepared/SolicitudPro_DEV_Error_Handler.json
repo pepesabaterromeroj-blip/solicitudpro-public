@@ -1,0 +1,86 @@
+{
+  "name": "SolicitudPro DEV - Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "524f6fe5-5c06-433c-9b56-f49308a6d23c",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -440,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function sanitize(value) {\n  return String(value || 'Error no especificado')\n    .replace(/[\\u0000-\\u001f\\u007f]+/g, ' ')\n    .replace(/\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b/gi, '[email]')\n    .replace(/\\bAuthorization\\s*[:=]\\s*(?:Bearer\\s+)?[^\\s,;]+/gi, 'Authorization=[redacted]')\n    .replace(/\\bBearer\\s+[A-Za-z0-9._~+/=-]+/gi, 'Bearer [redacted]')\n    .replace(/\\b[a-z_]*(?:role|key|token|password|secret|credential)[a-z_]*\\s*[:=]\\s*[^\\s,;]+/gi, '[redacted]')\n    .replace(/\\bsb_[a-z]+_[A-Za-z0-9_-]+/gi, '[redacted]')\n    .replace(/\\s+/g, ' ')\n    .trim()\n    .slice(0, 500);\n}\n\nreturn $input.all().map((item) => ({\n  json: {\n    occurred_at: new Date().toISOString(),\n    workflow_name: sanitize(item.json.workflow?.name || 'No especificado'),\n    failed_node: sanitize(\n      item.json.execution?.lastNodeExecuted ||\n      item.json.trigger?.error?.node?.name ||\n      'No especificado'\n    ),\n    execution_id: sanitize(item.json.execution?.id || 'No especificado'),\n    error_message: sanitize(\n      item.json.execution?.error?.message ||\n      item.json.trigger?.error?.message ||\n      item.json.trigger?.error?.cause?.message\n    ),\n    handling_status: 'pending_output_configuration',\n  },\n}));"
+      },
+      "id": "175a5643-2f09-4cb5-8ea8-816958136938",
+      "name": "Sanear error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -180,
+        40
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "8696df05-b6eb-4d75-8fa5-fc2a7cab6de7",
+      "name": "Salida pendiente de configurar",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        80,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Salida futura\nConectar aquí un canal de aviso o registro operativo. No enviar payloads completos, stacks, headers, credenciales ni secretos.",
+        "height": 140,
+        "width": 340,
+        "color": 4
+      },
+      "id": "7b12b91e-b3a3-4722-9276-3eb84112a4e5",
+      "name": "Nota salida futura",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        20,
+        -190
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sanear error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sanear error": {
+      "main": [
+        [
+          {
+            "node": "Salida pendiente de configurar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

@@ -1,0 +1,138 @@
+{
+  "updatedAt": "1970-01-01T00:00:00.000Z",
+  "createdAt": "1970-01-01T00:00:00.000Z",
+  "id": "PUBLIC_SOLICITUDPRO_DEV_OPS_MAINTENANCE_WORKFLOW_ID",
+  "name": "SolicitudPro DEV - Ops Maintenance",
+  "description": "Limpia diariamente alertas operativas DEV con timestamp anterior a 30 días; verifica antigüedad antes del borrado.",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "9cc29451-fe48-4f80-9b51-94bdc11dd724",
+      "name": "Limpieza diaria 03:10",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 3,
+              "triggerAtMinute": 10
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cdca3775-0290-487f-bc0e-61d55a2d4715",
+      "name": "Localizar alertas caducadas",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "REPLACE_WITH_DATA_TABLE_ID",
+          "cachedResultName": "SolicitudPro DEV - Alertas operativas"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "timestamp",
+              "condition": "lt",
+              "keyValue": "={{ $now.minus({ days: 30 }).toISO() }}"
+            }
+          ]
+        },
+        "returnAll": true
+      }
+    },
+    {
+      "id": "fc8da9d2-ec11-4e23-b13c-7b69481c4efa",
+      "name": "Eliminar solo alertas caducadas",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "REPLACE_WITH_DATA_TABLE_ID",
+          "cachedResultName": "SolicitudPro DEV - Alertas operativas"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.id }}"
+            },
+            {
+              "keyName": "timestamp",
+              "condition": "lt",
+              "keyValue": "={{ $now.minus({ days: 30 }).toISO() }}"
+            }
+          ]
+        },
+        "options": {
+          "dryRun": false
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Limpieza diaria 03:10": {
+      "main": [
+        [
+          {
+            "node": "Localizar alertas caducadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Localizar alertas caducadas": {
+      "main": [
+        [
+          {
+            "node": "Eliminar solo alertas caducadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true,
+    "timezone": "Europe/Madrid",
+    "errorWorkflow": "PUBLIC_SOLICITUDPRO_DEV_ERROR_HANDLER_WORKFLOW_ID"
+  },
+  "staticData": null,
+  "meta": {},
+  "pinData": {},
+  "versionId": "00000000-0000-4000-8000-000000000004",
+  "triggerCount": 0,
+  "tags": []
+}

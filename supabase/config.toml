@@ -1,0 +1,44 @@
+project_id = "solicitudpro"
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:8765"
+additional_redirect_urls = ["http://localhost:8765"]
+password_min_length = 8
+password_requirements = "lower_upper_letters_digits"
+
+[storage]
+enabled = true
+file_size_limit = "10MiB"
+
+[storage.buckets."request-attachments"]
+public = false
+file_size_limit = "10MiB"
+allowed_mime_types = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+  "application/pdf",
+]
+
+[functions.receive-public-form]
+enabled = true
+verify_jwt = false
+
+[functions.email-job-worker]
+enabled = true
+verify_jwt = false
+
+[functions.request-enrichment-worker]
+enabled = true
+verify_jwt = false
+
+[functions.follow-up-basic-worker]
+enabled = true
+verify_jwt = false

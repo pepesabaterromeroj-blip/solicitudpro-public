@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>SolicitudPro · Panel interno</title>
+    <link rel="stylesheet" href="panel-product-readonly.css?v=c18b">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="access-screen" id="access-screen" aria-labelledby="access-title">
+        <div class="access-intro">
+          <a class="brand" href="../index.html" aria-label="SolicitudPro, volver a la demo local">
+            <span class="brand-mark" aria-hidden="true">SP</span>
+            <span>SolicitudPro</span>
+          </a>
+          <p class="eyebrow">Panel interno</p>
+          <h1 id="access-title">Tus solicitudes, en orden.</h1>
+          <p class="lead">Consulta las solicitudes de tu negocio y gestiona estado, prioridad, seguimiento y archivado en el entorno de desarrollo.</p>
+          <div class="access-notes" aria-label="Características de este entorno">
+            <span>Supabase dev</span>
+            <span>Datos ficticios</span>
+            <span>Gestión interna</span>
+          </div>
+        </div>
+
+        <section class="access-card" aria-labelledby="sign-in-title">
+          <p class="eyebrow">Acceso de prueba</p>
+          <h2 id="sign-in-title">Iniciar sesión</h2>
+          <p>Elige un usuario ficticio de desarrollo e introduce su contraseña temporal. La sesión se conserva solo en memoria.</p>
+          <form id="sign-in-form" novalidate>
+            <label for="email">Usuario ficticio de desarrollo
+              <select id="email" name="email" autocomplete="username">
+                <option value="owner.reformas.dev@solicitudpro.test">Owner Reformas Dev</option>
+                <option value="owner.electricidad.dev@solicitudpro.test">Owner Electricidad Dev</option>
+                <option value="owner.fontaneria.dev@solicitudpro.test">Owner Fontanería Dev</option>
+                <option value="owner.climatizacion.dev@solicitudpro.test">Owner Climatización Dev</option>
+                <option value="owner.cristaleria.dev@solicitudpro.test">Owner Cristalerías Dev</option>
+                <option value="owner.academia.dev@solicitudpro.test">Owner Academia Dev</option>
+              </select>
+            </label>
+            <label for="password">Contraseña temporal
+              <input id="password" name="password" type="password" autocomplete="current-password" required>
+            </label>
+            <button class="button button-primary" type="submit">Entrar al panel</button>
+          </form>
+          <p class="access-caption">Entorno de desarrollo · Supabase dev · Cambios internos reales</p>
+        </section>
+      </section>
+
+      <section id="panel-screen" hidden aria-label="Panel interno de SolicitudPro">
+        <header class="topbar">
+          <a class="brand" href="../index.html" aria-label="SolicitudPro, volver a la demo local">
+            <span class="brand-mark" aria-hidden="true">SP</span>
+            <span>SolicitudPro</span>
+          </a>
+          <div class="topbar-context">
+            <span class="environment-badge">Supabase dev</span>
+            <span class="readonly-badge">Gestión interna</span>
+            <span class="user-chip" id="user-context">Sesión de desarrollo</span>
+            <button class="button button-quiet" id="sign-out" type="button">Cerrar sesión</button>
+          </div>
+        </header>
+
+        <div class="dev-notice" role="status">Modo desarrollo · Datos ficticios · Los cambios internos se guardan en Supabase dev.</div>
+
+        <section class="dashboard-header" aria-labelledby="dashboard-title">
+          <div>
+            <p class="eyebrow">Panel interno</p>
+            <h1 id="dashboard-title">Solicitudes del negocio</h1>
+            <p id="business-context">Consultando únicamente los registros permitidos por RLS.</p>
+          </div>
+          <button class="button button-secondary" id="refresh" type="button">Actualizar lectura</button>
+        </section>
+
+        <section class="metric-grid" aria-label="Resumen de solicitudes">
+          <article class="metric-card"><span class="metric-label">Visibles</span><strong id="metric-visible">0</strong><span>según RLS</span></article>
+          <article class="metric-card"><span class="metric-label">Nuevas</span><strong id="metric-new">0</strong><span>pendientes de revisar</span></article>
+          <article class="metric-card"><span class="metric-label">Seguimiento</span><strong id="metric-follow-up">0</strong><span>pendiente</span></article>
+          <article class="metric-card"><span class="metric-label">Prioridad alta</span><strong id="metric-high">0</strong><span>entre las visibles</span></article>
+        </section>
+
+        <section class="content-layout">
+          <div class="request-workspace">
+            <section class="filter-panel" aria-labelledby="filter-title">
+              <div class="section-heading-row">
+                <div>
+                  <p class="eyebrow">Consulta</p>
+                  <h2 id="filter-title">Filtrar solicitudes</h2>
+                </div>
+                <button class="button button-quiet" id="clear-filters" type="button">Limpiar filtros</button>
+              </div>
+              <div class="filter-grid">
+                <label for="search">Buscar<input id="search" type="search" placeholder="Referencia o cliente"></label>
+                <label for="business-filter">Negocio<select id="business-filter"><option value="">Todos los permitidos</option></select></label>
+                <label for="status-filter">Estado<select id="status-filter"><option value="">Todos</option></select></label>
+                <label for="priority-filter">Prioridad<select id="priority-filter"><option value="">Todas</option><option value="1">Alta</option><option value="2">Media</option><option value="3">Baja</option><option value="none">Sin prioridad</option></select></label>
+                <label for="archive-filter">Archivado<select id="archive-filter"><option value="active">Activas</option><option value="archived">Archivadas</option><option value="all">Todas</option></select></label>
+              </div>
+              <p class="filter-state" id="filter-state" aria-live="polite">Sin filtros activos.</p>
+            </section>
+
+            <section class="list-panel" aria-labelledby="request-list-title">
+              <div class="section-heading-row">
+                <div>
+                  <p class="eyebrow">Solicitudes</p>
+                  <h2 id="request-list-title">Listado</h2>
+                </div>
+                <p class="result-count" id="request-summary" aria-live="polite"></p>
+              </div>
+              <div class="request-list" id="request-list" aria-live="polite"></div>
+            </section>
+          </div>
+
+          <aside class="detail-drawer" id="detail-drawer" aria-labelledby="detail-title" hidden>
+            <div class="detail-header">
+              <div>
+                <p class="eyebrow">Detalle de solicitud</p>
+                <h2 id="detail-title">Datos de la solicitud</h2>
+              </div>
+              <button class="icon-button" id="close-detail" type="button" aria-label="Cerrar detalle" title="Cerrar detalle">×</button>
+            </div>
+            <p class="detail-status" id="detail-status" aria-live="polite">Selecciona una solicitud para ver el detalle.</p>
+            <div id="detail-content" hidden></div>
+          </aside>
+        </section>
+      </section>
+
+      <p class="toast" id="message" role="status" aria-live="polite">Introduce una contraseña temporal de un usuario ficticio para consultar sus datos de desarrollo.</p>
+    </main>
+    <dialog id="photo-dialog" class="photo-dialog" aria-labelledby="photo-title">
+      <div class="photo-header"><h2 id="photo-title">Foto adjunta</h2><button id="photo-close" class="button button-secondary" type="button" autofocus>Cerrar foto</button></div>
+      <img id="photo-image" alt="" referrerpolicy="no-referrer">
+    </dialog>
+    <script src="panel-product-readonly.js?v=c18b"></script>
+  </body>
+</html>

@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Demo interactiva de SolicitudPro para convertir solicitudes de clientes en oportunidades organizadas, respuestas sugeridas y seguimientos."
+    />
+    <title>SolicitudPro Demo</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body class="app-body">
+    <main class="real-access-screen" id="real-access" aria-labelledby="real-access-title" hidden>
+      <div class="real-access-card">
+        <span class="brand-mark" aria-hidden="true">SP</span>
+        <p class="section-kicker">SolicitudPro · Supabase DEV</p>
+        <h1 id="real-access-title">Acceso al negocio</h1>
+        <p id="real-access-message" role="status">Comprobando sesión…</p>
+        <form id="real-sign-in" class="real-sign-in">
+          <label>Email <input id="real-email" type="email" autocomplete="username" required /></label>
+          <label>Contraseña <input id="real-password" type="password" autocomplete="current-password" required /></label>
+          <button class="button button-primary" type="submit">Entrar</button>
+        </form>
+      </div>
+    </main>
+    <main class="sector-selector-screen" id="sector-selector" aria-labelledby="sector-selector-title" hidden>
+      <div class="sector-selector-content">
+        <div class="sector-selector-heading">
+          <span class="brand-mark" aria-hidden="true">SP</span>
+          <p class="section-kicker">SolicitudPro Demo</p>
+          <h1 id="sector-selector-title">¿Qué demo quieres probar?</h1>
+          <p>
+            Cada ejemplo usa datos ficticios y muestra cómo SolicitudPro organiza
+            solicitudes, respuestas y seguimientos.
+          </p>
+          <p class="sector-selector-notice" id="sector-selector-notice" role="status" hidden></p>
+        </div>
+
+        <section class="sector-selector-grid" aria-label="Demos sectoriales disponibles">
+          <article class="sector-selector-option" data-sector-id="reformas">
+            <h2>Reformas</h2>
+            <p>Solicitudes con fotos, medidas, visitas y presupuestos.</p>
+            <a class="button button-primary" href="?mode=local&amp;sector=reformas">Probar demo</a>
+          </article>
+          <article class="sector-selector-option" data-sector-id="electricidad">
+            <h2>Electricidad</h2>
+            <p>Averías, instalaciones, urgencias y revisiones.</p>
+            <a class="button button-primary" href="?mode=local&amp;sector=electricidad">Probar demo</a>
+          </article>
+          <article class="sector-selector-option" data-sector-id="fontaneria">
+            <h2>Fontanería</h2>
+            <p>Fugas, atascos, termos e incidencias urgentes.</p>
+            <a class="button button-primary" href="?mode=local&amp;sector=fontaneria">Probar demo</a>
+          </article>
+          <article class="sector-selector-option" data-sector-id="climatizacion">
+            <h2>Climatización</h2>
+            <p>Aire acondicionado, instalaciones, averías y mantenimiento.</p>
+            <a class="button button-primary" href="?mode=local&amp;sector=climatizacion">Probar demo</a>
+          </article>
+          <article class="sector-selector-option" data-sector-id="cristaleria">
+            <h2>Cristalerías</h2>
+            <p>Cristales, ventanas, mamparas y cerramientos.</p>
+            <a class="button button-primary" href="?mode=local&amp;sector=cristaleria">Probar demo</a>
+          </article>
+          <article class="sector-selector-option" data-sector-id="academias">
+            <h2>Academias</h2>
+            <p>Materias, niveles, horarios y modalidad.</p>
+            <a class="button button-primary" href="?mode=local&amp;sector=academias">Probar demo</a>
+          </article>
+        </section>
+
+        <p class="sector-selector-footnote">
+          Demo local · datos de ejemplo · no se envían mensajes reales.
+        </p>
+      </div>
+    </main>
+
+    <div class="app-shell">
+      <aside class="app-sidebar" id="app-sidebar" aria-label="Navegación de SolicitudPro Demo">
+        <div class="sidebar-brand">
+          <a class="brand" href="https://solicitudpro.com" aria-label="SolicitudPro.com">
+            <span class="brand-mark">SP</span>
+            <span>
+              SolicitudPro
+              <small>Demo de producto</small>
+            </span>
+          </a>
+        </div>
+
+        <nav class="app-nav" aria-label="Secciones de la demo">
+          <details class="app-nav-group" open>
+            <summary>Trabajo</summary>
+            <div class="app-nav-group-items">
+              <button class="app-nav-button is-active" type="button" data-view-target="dashboard" aria-current="page">Inicio</button>
+              <button class="app-nav-button" type="button" data-view-target="solicitudes">Solicitudes</button>
+              <button class="app-nav-button" type="button" data-view-target="seguimientos">Seguimientos</button>
+              <button class="app-nav-button" type="button" data-view-target="clientes">Contactos</button>
+            </div>
+          </details>
+
+          <details class="app-nav-group selected-request-nav" id="selected-request-nav" open>
+            <summary>Solicitud seleccionada</summary>
+            <div class="selected-request-label" id="selected-request-nav-label">SOL-001 · Marta López</div>
+            <p class="selected-request-meta" id="selected-request-status">Estado: Nuevo</p>
+            <p class="selected-request-meta" id="selected-request-next-action">Próxima acción: pendiente</p>
+            <div class="app-nav-group-items">
+              <button class="app-nav-button" type="button" data-action="open-selected-detail">Abrir detalle</button>
+              <button class="app-nav-button" type="button" data-action="copy-selected-response">Copiar respuesta</button>
+              <button class="app-nav-button" type="button" data-action="open-selected-detail" data-detail-tab-target="seguimiento">Ver seguimiento</button>
+            </div>
+          </details>
+
+          <details class="app-nav-group" open>
+            <summary>Acceso del cliente</summary>
+            <div class="app-nav-group-items">
+              <button class="app-nav-button" type="button" data-view-target="acceso-cliente">Compartir formulario</button>
+              <button class="app-nav-button" type="button" data-view-target="formulario">Probar como cliente</button>
+            </div>
+          </details>
+
+          <details class="app-nav-group" open>
+            <summary>Más</summary>
+            <div class="app-nav-group-items">
+              <button class="app-nav-button" type="button" data-view-target="sectores">Personalización por sector</button>
+              <button class="app-nav-button" type="button" data-view-target="tabla-local">Tabla interna</button>
+              <button class="app-nav-button" type="button" data-view-target="email-negocio">Emails automáticos simulados</button>
+              <button class="app-nav-button" type="button" data-view-target="documentacion-tecnica">Información de la demo</button>
+            </div>
+          </details>
+        </nav>
+
+        <div class="sidebar-actions">
+          <button class="button button-secondary" type="button" id="reset-demo" data-action="reset-demo">
+            Reiniciar demo
+          </button>
+          <p class="form-note reset-note" id="reset-demo-note" role="status" aria-live="polite">Reiniciar demo restaura las solicitudes de ejemplo del sector actual guardadas en este navegador.</p>
+          <a class="sector-change-link" href="?mode=local">Cambiar demo sectorial</a>
+        </div>
+      </aside>
+      <button class="sidebar-scrim" type="button" id="sidebar-scrim" aria-label="Cerrar menú"></button>
+
+      <div class="app-content-shell">
+        <header class="app-topbar">
+          <button class="mobile-menu-toggle" type="button" id="mobile-menu-toggle" aria-controls="app-sidebar" aria-expanded="false">
+            Menú
+          </button>
+          <div class="view-title-wrap">
+            <p class="section-kicker" id="view-kicker">Trabajo de hoy</p>
+            <h1 id="view-title">Inicio</h1>
+          </div>
+          <div class="app-topbar-actions">
+            <div class="real-session-tools" id="real-session-tools" hidden>
+              <label>Negocio <select id="real-business-selector" aria-label="Negocio activo" hidden></select></label>
+              <strong id="real-business-context"></strong>
+              <button class="copy-button" type="button" id="real-refresh">Actualizar</button>
+              <button class="copy-button" type="button" id="real-sign-out">Salir</button>
+            </div>
+            <button class="app-back-button" type="button" id="app-back-button" data-action="go-back-view" hidden>
+              ← Volver
+            </button>
+            <p class="demo-status" aria-label="Estado de la demo" style="display: none">Demo local · datos de ejemplo · no se envían mensajes reales</p>
+          </div>
+        </header>
+
+        <main class="app-main">
+      <section class="section app-view" data-view="real-pending" id="real-pending-view" hidden>
+        <div class="section-heading"><p class="section-kicker">Integración en curso</p><h2>Sección pendiente</h2>
+          <p>Esta sección se conectará a datos reales en las siguientes partes de C18C. Las solicitudes ya pueden consultarse.</p></div>
+        <button class="copy-button" type="button" data-view-target="solicitudes">Ir a Solicitudes</button>
+      </section>
+      <section class="section app-view dashboard-view is-active" id="dashboard" data-view="dashboard" aria-labelledby="dashboard-title">
+        <div class="section-heading section-heading-row">
+          <div>
+            <p class="section-kicker">Trabajo de hoy</p>
+            <h2 id="dashboard-title">Qué revisar ahora</h2>
+            <p>Prioriza solicitudes, respuestas y seguimientos antes de que una oportunidad se quede sin atender.</p>
+          </div>
+          <span class="dashboard-local-badge" style="display: none">Datos ficticios locales</span>
+        </div>
+        <div class="dashboard-metrics" id="dashboard-metrics" aria-live="polite"></div>
+        <div class="dashboard-work-grid">
+          <section class="dashboard-panel">
+            <div class="dashboard-panel-heading">
+              <div><p class="section-kicker">Atención</p><h3>Alertas activas</h3></div>
+              <button class="copy-button" type="button" data-view-target="solicitudes">Ver solicitudes</button>
+            </div>
+            <div class="dashboard-alert-list" id="dashboard-alerts" aria-live="polite"></div>
+          </section>
+          <section class="dashboard-panel dashboard-next-panel">
+            <p class="section-kicker">Siguiente paso</p>
+            <div id="dashboard-next-action" aria-live="polite"></div>
+          </section>
+        </div>
+        <section class="dashboard-panel dashboard-actions-panel">
+          <p class="section-kicker">Acciones rápidas</p>
+          <h3>Acciones rápidas</h3>
+          <div class="dashboard-actions">
+            <button class="copy-button" type="button" data-view-target="solicitudes">Revisar solicitudes nuevas</button>
+            <button class="copy-button" type="button" data-detail-tab-target="respuesta">Preparar respuesta</button>
+            <button class="copy-button" type="button" data-view-target="seguimientos">Ver seguimientos</button>
+            <button class="copy-button" type="button" data-view-target="formulario">Probar como cliente</button>
+          </div>
+        </section>
+        <section class="dashboard-panel dashboard-guide" aria-labelledby="dashboard-guide-title">
+          <div>
+            <p class="section-kicker">Recorrido de demo</p>
+            <h3 id="dashboard-guide-title">Cómo funciona SolicitudPro</h3>
+            <p>Una solicitud entra, se revisa, se responde y queda preparada para el siguiente contacto.</p>
+          </div>
+          <ol class="dashboard-guide-steps">
+            <li>Cliente envía solicitud</li>
+            <li>Datos y dudas ordenados</li>
+            <li>Respuesta preparada</li>
+            <li>Seguimiento claro</li>
+          </ol>
+          <button class="copy-button" type="button" data-action="open-dashboard-request">Revisar siguiente solicitud</button>
+        </section>
+      </section>
+
+      <section class="section app-view demo-tour-view" id="recorrido-demo" data-view="recorrido-demo" aria-labelledby="demo-tour-title" hidden>
+        <div class="section-heading">
+          <p class="section-kicker">Recorrido de demo</p>
+          <h2 id="demo-tour-title">De una solicitud a un siguiente paso claro</h2>
+          <p>Recorre una oportunidad ficticia de principio a fin. Todo ocurre solo en esta demo local.</p>
+        </div>
+        <article class="demo-tour-hero">
+          <div>
+            <span class="tour-label">Solicitud protagonista</span>
+            <h3>Reforma de cocina - Marta López</h3>
+            <p id="selected-request-context">Marta López · Reformas · Nuevo</p>
+          </div>
+          <button class="button button-secondary" type="button" data-action="open-selected-detail">Abrir solicitud seleccionada</button>
+        </article>
+        <ol class="demo-tour-steps">
+          <li><span>1</span><div><strong>El cliente envía el formulario</strong><p>Comparte un enlace o QR y recibe los datos ordenados.</p><button class="copy-button" type="button" data-view-target="formulario">Ver formulario</button></div></li>
+          <li><span>2</span><div><strong>La solicitud entra al panel</strong><p>El negocio ve contacto, servicio, origen, urgencia y próxima acción.</p><button class="copy-button" type="button" data-view-target="solicitudes">Ver solicitudes</button></div></li>
+          <li><span>3</span><div><strong>Se revisan los datos</strong><p>Los detalles y adjuntos se consultan dentro de la solicitud seleccionada.</p><button class="copy-button" type="button" data-detail-tab-target="solicitud">Ver datos recibidos</button></div></li>
+          <li><span>4</span><div><strong>Se prepara la respuesta</strong><p>El resumen interno y la respuesta sugerida se revisan antes de copiarla.</p><button class="copy-button" type="button" data-detail-tab-target="respuesta">Ver respuesta sugerida</button></div></li>
+          <li><span>5</span><div><strong>Se organiza el seguimiento</strong><p>El estado comercial y la próxima acción evitan que la oportunidad se pierda.</p><button class="copy-button" type="button" data-detail-tab-target="seguimiento">Ver seguimiento</button></div></li>
+        </ol>
+      </section>
+
+      <section class="section client-access-section app-view" id="acceso-cliente" data-view="acceso-cliente" aria-labelledby="client-access-title" hidden>
+        <div class="section-heading">
+          <p class="section-kicker">Paso 1</p>
+          <h2 id="client-access-title">Formulario público del negocio</h2>
+          <p>
+            Este es el enlace que el negocio podría enviar a sus clientes o
+            colocar junto a un QR.
+          </p>
+        </div>
+
+        <div class="client-access-panel">
+          <div class="qr-demo" aria-label="QR demo no funcional para explicar el acceso al formulario">
+            <div class="qr-grid" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <strong>QR demo no funcional</strong>
+            <small>Bloque visual para explicar el acceso al formulario.</small>
+          </div>
+
+          <div class="client-access-copy">
+            <h3>Enlace simulado del formulario</h3>
+            <div class="share-link-box">
+              <code id="share-link">demo.solicitudpro.local/formulario</code>
+              <button class="copy-button" type="button" id="copy-share-link">
+                Copiar enlace demo
+              </button>
+            </div>
+            <ul class="access-use-list">
+              <li>El cliente abre el enlace y rellena la solicitud.</li>
+              <li>La solicitud aparece en el panel interno del negocio.</li>
+              <li>El QR y el enlace son simulados: no publican datos reales.</li>
+            </ul>
+            <p class="access-note" id="share-link-note" role="status" aria-live="polite">
+              Demo local: el enlace y el QR son solo visuales.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section app-view feature-view" id="formulario-publico" data-view="formulario-publico" aria-labelledby="public-form-title" hidden>
+        <div class="section-heading">
+          <p class="section-kicker">Acceso preparado</p>
+          <h2 id="public-form-title">Formulario público del negocio</h2>
+          <p>Una página sencilla para que el cliente deje los datos necesarios antes de que el negocio revise la oportunidad.</p>
+        </div>
+        <div class="feature-card-grid">
+          <article class="feature-card">
+            <h3>Comparte un único acceso</h3>
+            <p>El enlace y el QR ayudan a usar el mismo formulario desde WhatsApp, una web o un mostrador.</p>
+          </article>
+          <article class="feature-card">
+            <h3>Recibe datos ordenados</h3>
+            <p>Nombre, contacto, servicio, urgencia y descripción llegan preparados para revisar sin copiar mensajes a mano.</p>
+          </article>
+        </div>
+        <button class="button button-primary" type="button" data-view-target="formulario">Ver formulario del cliente</button>
+      </section>
+
+      <section class="section form-dashboard app-view" id="formulario" data-view="formulario" aria-labelledby="form-title" hidden>
+        <div class="section-heading">
+          <p class="section-kicker">Entrada de solicitud</p>
+          <h2 id="form-title">Formulario del cliente</h2>
+          <p id="form-description">
+            El cliente rellena sus datos, explica que necesita y la solicitud
+            queda preparada para aparecer en el panel interno.
+          </p>
+        </div>
+
+        <form class="request-form" id="request-form">
+          <div class="form-grid" id="sector-form-fields"></div>
+          <p class="supabase-dev-notice" id="supabase-dev-form-notice" role="status" hidden></p>
+          <button class="button button-primary" id="sector-form-submit" type="submit">Enviar solicitud demo</button>
+          <p class="form-note" id="form-note" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="section app-view client-receipt-view" id="solicitud-recibida" data-view="solicitud-recibida" aria-labelledby="client-receipt-title" hidden>
+        <div class="client-receipt-card" id="client-receipt" aria-live="polite"></div>
+      </section>
+
+      <section class="section app-view request-detail-view" id="detalle-solicitud" data-view="detalle-solicitud" aria-label="Detalle de solicitud" hidden>
+        <div id="request-detail-view-content" tabindex="-1"></div>
+      </section>
+
+      <section class="section panel-section app-view" id="panel" data-view="solicitudes" aria-labelledby="panel-title" hidden>
+        <div class="section-heading section-heading-row">
+          <div>
+            <p class="section-kicker">Panel interno</p>
+            <h2 id="panel-title">Solicitudes recibidas</h2>
+            <p>
+              Convierte una solicitud de cliente en una oportunidad organizada,
+              con respuesta sugerida y seguimiento. Aquí el negocio revisa estados
+              y próximas acciones desde un único lugar.
+            </p>
+          </div>
+          <div class="panel-counter">
+            <span id="request-count">0</span>
+            <small>solicitudes</small>
+          </div>
+        </div>
+
+        <div
+          class="status-summary"
+          id="status-summary"
+          aria-label="Indicadores por estado del pipeline"
+        ></div>
+
+        <div class="follow-up-overview" aria-label="Resumen de seguimientos">
+          <div>
+            <p class="section-kicker">Seguimientos pendientes</p>
+            <p>Revisa las próximas acciones sin cargar toda la bandeja en esta vista.</p>
+          </div>
+          <div class="follow-up-overview-actions">
+            <strong id="follow-up-summary-count">0 pendientes</strong>
+            <button class="copy-button" type="button" data-view-target="seguimientos">Ver seguimientos</button>
+            <button class="copy-button view-table-button" type="button" data-view-target="tabla-local">Ver tabla interna</button>
+          </div>
+        </div>
+
+        <div class="panel-filters" aria-label="Filtros del panel de solicitudes">
+          <label class="panel-search">
+            Buscar solicitud
+            <input
+              type="search"
+              id="request-search"
+              placeholder="Nombre, servicio, teléfono o necesidad"
+              autocomplete="off"
+            />
+          </label>
+          <label>
+            Estado
+            <select id="status-filter">
+              <option value="Todos">Todos los estados</option>
+            </select>
+          </label>
+          <label>
+            Servicio
+            <select id="service-filter">
+              <option value="Todos">Todos los servicios</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="requests-list" id="requests-list" aria-live="polite"></div>
+      </section>
+
+      <section class="section app-view clients-view" id="clientes" data-view="clientes" aria-labelledby="clients-title" hidden>
+        <div class="section-heading section-heading-row">
+          <div>
+            <p class="section-kicker">Contactos</p>
+            <h2 id="clients-title">Contactos y solicitudes asociadas</h2>
+            <p>Consulta el contacto, su última solicitud y la próxima acción sin convertir la demo en un CRM complejo.</p>
+          </div>
+          <span class="dashboard-local-badge" style="display: none">Datos ficticios locales</span>
+        </div>
+        <div class="clients-layout">
+          <div class="clients-list-card">
+            <div class="clients-inbox-heading"><strong>Contactos recientes</strong><span>Última solicitud y estado</span></div>
+            <div id="clients-list" class="clients-list" aria-live="polite"></div>
+          </div>
+          <aside class="client-profile" id="client-profile" aria-live="polite"></aside>
+        </div>
+      </section>
+
+      <section class="section app-view feature-view" id="estados-comerciales" data-view="estados-comerciales" aria-labelledby="commercial-status-title" hidden>
+        <div class="section-heading">
+          <p class="section-kicker">Panel interno</p>
+          <h2 id="commercial-status-title">Estados comerciales</h2>
+          <p>Una forma común de saber en qué punto está cada oportunidad y qué acción necesita después.</p>
+        </div>
+        <div class="status-guide-grid">
+          <article><strong>Nuevo</strong><span>Entrada pendiente de primera revisión.</span></article>
+          <article><strong>En preparación</strong><span>El negocio está revisando alcance y presupuesto.</span></article>
+          <article><strong>Enviado</strong><span>Propuesta o presupuesto compartido con el cliente.</span></article>
+          <article><strong>Seguimiento pendiente</strong><span>Hay que retomar el contacto o resolver una duda.</span></article>
+          <article><strong>Ganado</strong><span>Oportunidad confirmada por el negocio.</span></article>
+          <article><strong>Perdido</strong><span>Solicitud cerrada sin continuar el proceso.</span></article>
+        </div>
+      </section>
+
+      <section class="section app-view feature-view" id="email-negocio" data-view="email-negocio" aria-labelledby="business-email-title" hidden>
+        <div class="section-heading">
+          <p class="section-kicker">Emails simulados</p>
+          <h2 id="business-email-title">Emails automáticos simulados</h2>
+          <p>Dos ejemplos locales adaptados a la demo sectorial: aviso interno y confirmación al cliente.</p>
+        </div>
+        <p class="simulation-notice">Demo local · estos emails son ejemplos simulados y no se envían.</p>
+        <div class="email-preview-tabs" role="tablist" aria-label="Previsualizaciones de email">
+          <button class="email-preview-tab is-active" type="button" role="tab" aria-selected="true" data-action="show-email-preview" data-email-preview-target="business">Email interno al negocio</button>
+          <button class="email-preview-tab" type="button" role="tab" aria-selected="false" data-action="show-email-preview" data-email-preview-target="client">Confirmación al cliente</button>
+        </div>
+        <article class="simulation-email simulation-email-internal" id="business-email-preview" data-email-preview-panel="business" aria-live="polite"></article>
+        <article class="simulation-email" id="client-email-preview" data-email-preview-panel="client" aria-live="polite" hidden></article>
+      </section>
+
+      <section class="section app-view feature-view" id="tabla-local" data-view="tabla-local" aria-labelledby="local-table-title" hidden>
+        <div class="section-heading">
+          <p class="section-kicker">Datos locales</p>
+          <h2 id="local-table-title">Tabla interna de solicitudes</h2>
+          <p>Datos ficticios guardados solo en este navegador.</p>
+        </div>
+        <div class="local-sheet-intro">
+          <span class="local-sheet-badge">Demo local · no conecta con Google Sheets</span>
+          <p>SOL-001 es la referencia corta para localizar cada solicitud.</p>
+        </div>
+        <div class="local-sheet-toolbar" aria-label="Barra de herramientas de la tabla interna">
+          <div class="local-sheet-toolbar-status">
+            <strong>Tabla interna</strong>
+            <span id="local-table-save-status">Guardado local</span>
+          </div>
+          <div class="local-sheet-toolbar-actions" aria-label="Filtros de la hoja local">
+            <label class="local-toolbar-search"><span class="sr-only">Buscar en la hoja local</span><input id="local-table-search" type="search" placeholder="Buscar" /></label>
+            <label class="local-toolbar-select"><span class="sr-only">Filtrar por estado</span><select id="local-table-status-filter"><option value="Todos">Todos los estados</option></select></label>
+            <label class="local-toolbar-select"><span class="sr-only">Filtrar por servicio</span><select id="local-table-service-filter"><option value="Todos">Todos los servicios</option></select></label>
+            <div class="local-table-view-toggle" role="group" aria-label="Vista de la hoja">
+              <button class="is-active" type="button" data-action="set-local-table-view" data-local-table-view="summary" aria-pressed="true">Vista resumida</button>
+              <button type="button" data-action="set-local-table-view" data-local-table-view="complete" aria-pressed="false">Vista completa</button>
+            </div>
+            <button class="local-export-button" type="button" data-action="export-local-table-csv">Exportar CSV</button>
+          </div>
+        </div>
+        <div class="local-table-scroll-controls">
+          <p class="local-sheet-note">Usa las flechas o desplázate horizontalmente para ver más columnas.</p>
+          <div class="local-table-scroll-buttons">
+            <button type="button" data-action="scroll-local-table" data-scroll-direction="left" aria-label="Ver columnas anteriores">&larr;</button>
+            <button type="button" data-action="scroll-local-table" data-scroll-direction="right" aria-label="Ver más columnas">&rarr;</button>
+          </div>
+        </div>
+        <div class="local-table-wrap" id="local-table-wrap" tabindex="0" aria-label="Tabla local de solicitudes ficticias">
+          <table class="local-data-table" id="local-data-table">
+            <thead class="sheet-column-letters" id="local-table-letters" aria-hidden="true"></thead>
+            <thead id="local-table-head"></thead>
+            <tbody id="local-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section app-view feature-view" id="google-sheets-futuro" data-view="google-sheets-futuro" aria-labelledby="sheets-future-title" hidden>
+        <div class="section-heading">
+          <p class="section-kicker">Opción futura</p>
+          <h2 id="sheets-future-title">Google Sheets para negocios que prefieren una hoja</h2>
+          <p>Podría ser una primera conexión para equipos pequeños que ya trabajan con una tabla parecida a Excel.</p>
+        </div>
+        <div class="future-option-card">
+          <strong>No está conectado en esta demo.</strong>
+          <p>En una fase posterior, SolicitudPro podría enviar cada solicitud validada a una hoja del negocio mediante una integración segura.</p>
+        </div>
+      </section>
+
+      <section class="section app-view feature-view" id="panel-futuro" data-view="panel-futuro" aria-labelledby="panel-future-title" hidden>
+        <div class="section-heading">
+          <p class="section-kicker">Opción futura</p>
+          <h2 id="panel-future-title">Panel interno propio de SolicitudPro</h2>
+          <p>La alternativa más completa para centralizar solicitudes, seguimientos, mensajes y actividad comercial en un mismo lugar.</p>
+        </div>
+        <div class="future-option-card">
+          <strong>Esta demo ya representa la dirección del panel.</strong>
+          <p>El siguiente paso real requeriría usuarios, permisos, una base de datos y un backend seguro. No se crea nada de eso en esta fase.</p>
+        </div>
+      </section>
+
+      <section class="section app-view feature-view" id="sectores" data-view="sectores" aria-labelledby="sectors-title" hidden>
+        <div class="section-heading">
+          <p class="section-kicker">Personalización por sector</p>
+          <h2 id="sectors-title">Una misma forma de trabajo, adaptada al sector</h2>
+          <p>SolicitudPro mantiene la misma estructura de trabajo, pero adapta formularios, ejemplos, respuestas sugeridas y seguimientos según el sector.</p>
+        </div>
+        <div class="sector-preview-selector" role="tablist" aria-label="Sectores de ejemplo">
+          <button class="is-active" type="button" role="tab" aria-selected="true" data-action="select-sector-preview" data-sector-preview="reformas">Reformas</button>
+          <button type="button" role="tab" aria-selected="false" data-action="select-sector-preview" data-sector-preview="electricidad">Electricidad</button>
+          <button type="button" role="tab" aria-selected="false" data-action="select-sector-preview" data-sector-preview="fontaneria">Fontanería</button>
+          <button type="button" role="tab" aria-selected="false" data-action="select-sector-preview" data-sector-preview="academias">Academias</button>
+        </div>
+        <div class="sector-preview" id="sector-preview" aria-live="polite"></div>
+        <p class="form-sector-intro">La configuración de esta demo cambia con el sector activo. Los datos de ejemplo se guardan solo en este navegador.</p>
+      </section>
+
+      <section class="section app-view feature-view" id="campos-formulario" data-view="campos-formulario" aria-labelledby="form-fields-title" hidden>
+        <div class="section-heading">
+          <p class="section-kicker">Configuración demo</p>
+          <h2 id="form-fields-title">Campos que se podrían adaptar por negocio</h2>
+          <p>La demo actual usa campos comunes. Una versión posterior podría pedir solo los detalles útiles para cada servicio.</p>
+        </div>
+        <div class="field-guide-grid">
+          <article><h3>Reformas</h3><p>Fotos, medidas y ubicación aproximada.</p></article>
+          <article><h3>Electricistas</h3><p>Foto del cuadro, tipo de instalación y urgencia.</p></article>
+          <article><h3>Cristalerías</h3><p>Medidas, tipo de cristal y fotos.</p></article>
+          <article><h3>Carpinterías</h3><p>Medidas, material y fotos del espacio.</p></article>
+          <article><h3>Academias</h3><p>Asignatura, nivel y horario preferido.</p></article>
+          <article><h3>Clínicas</h3><p>Tipo de consulta y preferencia horaria.</p></article>
+        </div>
+      </section>
+
+      <section class="section follow-up-view app-view" id="seguimientos" data-view="seguimientos" aria-labelledby="follow-up-title" hidden>
+        <div class="section-heading section-heading-row">
+          <div>
+            <p class="section-kicker">Seguimiento comercial</p>
+            <h2 id="follow-up-title">Próximas oportunidades a recuperar</h2>
+            <p>Acciones sugeridas por estado y urgencia para no perder solicitudes pendientes.</p>
+          </div>
+          <span class="follow-up-total" id="follow-up-count">0 pendientes</span>
+        </div>
+        <div class="follow-up-state-filter" id="follow-up-state-filter" role="group" aria-label="Filtrar seguimientos por estado">
+          <button class="copy-button is-active" type="button" data-follow-up-filter="pending" aria-pressed="true">Pendientes</button>
+          <button class="copy-button" type="button" data-follow-up-filter="contacted" aria-pressed="false">Contactados</button>
+          <button class="copy-button" type="button" data-follow-up-filter="all" aria-pressed="false">Todos</button>
+        </div>
+        <div class="follow-up-inbox">
+          <div class="follow-up-list" id="follow-up-list" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="section technical-docs-section app-view" id="documentacion-tecnica" data-view="documentacion-tecnica" aria-labelledby="technical-docs-title" hidden>
+        <details class="technical-docs">
+          <summary>
+            <span id="technical-docs-title">Información de la demo</span>
+            <small>Cómo funciona esta versión local y documentación técnica para desarrollo futuro.</small>
+          </summary>
+
+          <section class="automation-section" id="automatizacion">
+            <div class="section-heading">
+              <p class="section-kicker">Automatización futura</p>
+              <h2>Flujo de referencia para convertir una solicitud en tareas claras para el negocio.</h2>
+              <p>
+                Esta demo muestra el flujo previsto de SolicitudPro con datos
+                ficticios. Los emails son ejemplos simulados y no se envían mensajes
+                reales. Todo queda en este navegador; no hay backend ni conexión real
+                a Supabase, n8n, Google Sheets o Gmail.
+              </p>
+            </div>
+
+        <div class="workflow" aria-label="Flujo visual de automatización con n8n">
+          <div class="workflow-step">
+            <span>01</span>
+            <strong>Formulario del cliente</strong>
+            <small>El cliente explica su necesidad.</small>
+          </div>
+          <div class="workflow-arrow">-></div>
+          <div class="workflow-step">
+            <span>02</span>
+            <strong>Validación de campos</strong>
+            <small>n8n revisaría los datos mínimos.</small>
+          </div>
+          <div class="workflow-arrow">-></div>
+          <div class="workflow-step">
+            <span>03</span>
+            <strong>Asistente interno</strong>
+            <small>Prepara resumen, respuesta y seguimiento.</small>
+          </div>
+          <div class="workflow-arrow">-></div>
+          <div class="workflow-step">
+            <span>04</span>
+            <strong>Google Sheets futuro</strong>
+            <small>Podría registrar la solicitud.</small>
+          </div>
+          <div class="workflow-arrow">-></div>
+          <div class="workflow-step">
+            <span>05</span>
+            <strong>Email al cliente</strong>
+            <small>Podría confirmar la recepción.</small>
+          </div>
+          <div class="workflow-arrow">-></div>
+          <div class="workflow-step">
+            <span>06</span>
+            <strong>Email al negocio</strong>
+            <small>Podría avisar al equipo.</small>
+          </div>
+          <div class="workflow-arrow">-></div>
+          <div class="workflow-step workflow-step-error">
+            <span>07</span>
+            <strong>Control de errores</strong>
+            <small>Permitirá registrar fallos para no perder solicitudes.</small>
+          </div>
+        </div>
+
+        <div class="automation-notes">
+          <article>
+            <h3>Qué hace la automatización</h3>
+            <p>
+              Ordena los campos, valida información y prepara un resumen,
+              una respuesta sugerida y una próxima acción para revisar.
+            </p>
+          </article>
+          <article>
+            <h3>Qué muestra esta web</h3>
+            <p>
+              Una interfaz local para enseñar el producto: formulario, panel,
+              estados, resumen simulado, respuesta sugerida y seguimiento.
+            </p>
+          </article>
+        </div>
+          </section>
+
+          <section class="payload-section" id="payload-n8n" aria-labelledby="payload-title">
+            <div class="section-heading">
+              <p class="section-kicker">Preparación futura</p>
+              <h2 id="payload-title">Payload futuro para n8n, listo para revisar antes de conectar nada.</h2>
+              <p>
+                Esta demo ya muestra qué datos deberían viajar a un backend o webhook
+                seguro cuando el producto deje de ser local. No envía datos todavía,
+                no guarda credenciales y no llama a servicios externos desde el navegador.
+              </p>
+            </div>
+
+        <div class="payload-panel">
+          <div class="payload-copy">
+            <h3>Campos que saldrían del MVP</h3>
+            <p>
+              El objetivo es que n8n reciba una solicitud clara, con contacto,
+              necesidad, estado, seguimiento, respuesta sugerida e historial para
+              poder guardarla en Google Sheets, base de datos o futuro CRM.
+            </p>
+            <ul class="payload-field-list">
+              <li><code>cliente_nombre</code> y datos de contacto.</li>
+              <li><code>servicio_tipo</code>, presupuesto, urgencia y descripción.</li>
+              <li><code>respuesta_sugerida</code>, preguntas clave y seguimiento.</li>
+              <li><code>historial_actividad</code> para trazabilidad comercial.</li>
+            </ul>
+            <p class="payload-note">No envía datos todavía. La conexión real debe pasar por backend seguro.</p>
+          </div>
+
+          <pre class="payload-code" aria-label="Ejemplo de payload JSON futuro para n8n"><code>{
+  "origen": "formulario_demo",
+  "cliente_nombre": "Marta López",
+  "cliente_email": "marta.lopez@example.com",
+  "cliente_telefono": "+34 612 345 678",
+  "servicio_tipo": "Reformas",
+  "descripcion_original": "Quiere reformar un baño pequeño...",
+  "presupuesto_rango": "1.000 - 3.000 EUR",
+  "urgencia": "Este mes",
+  "estado": "Nuevo",
+  "fecha_entrada": "2026-06-18",
+  "proximo_seguimiento": "2026-06-19",
+  "cadencia_seguimiento_horas": 24,
+  "adjuntos": [
+    {
+      "nombre": "baño-humedad-demo.jpg",
+      "tipo": "image/jpeg",
+      "tamano_bytes": 184000
+    }
+  ],
+  "resumen_interno": "Revisar detalles y confirmar alcance.",
+  "respuesta_sugerida": "Hola Marta, gracias por contactar...",
+  "preguntas_clave": ["medidas aproximadas", "fotos del estado actual"],
+  "historial_actividad": [
+    {
+      "fecha": "2026-06-18",
+      "tipo": "created",
+      "titulo": "Solicitud creada"
+    }
+  ]
+}</code></pre>
+        </div>
+          </section>
+
+          <section class="data-model-section" id="modelo-datos" aria-labelledby="data-model-title">
+            <div class="section-heading">
+              <p class="section-kicker">Preparación backend</p>
+              <h2 id="data-model-title">Modelo de datos futuro para pasar de demo local a CRM real.</h2>
+              <p>
+                Esta sección ordena las entidades que harían falta en una base de
+                datos cuando el producto evolucione. No crea una base de datos real,
+                no conecta servicios externos y no cambia el funcionamiento local.
+              </p>
+            </div>
+
+        <div class="data-model-panel">
+          <article class="data-entity-card">
+            <span>01</span>
+            <h3>Negocio</h3>
+            <p>Configuración del cliente: nombre comercial, sector, canales y preferencias de respuesta.</p>
+          </article>
+          <article class="data-entity-card">
+            <span>02</span>
+            <h3>Contacto</h3>
+            <p>Persona o empresa que pide presupuesto, con email, teléfono y origen de entrada.</p>
+          </article>
+          <article class="data-entity-card">
+            <span>03</span>
+            <h3>Solicitud</h3>
+            <p>Necesidad concreta, servicio, presupuesto, urgencia, estado comercial y adjuntos.</p>
+          </article>
+          <article class="data-entity-card">
+            <span>04</span>
+            <h3>Seguimiento</h3>
+            <p>Próxima acción, fecha prevista, cadencia 24/48/72 horas y resultado del contacto.</p>
+          </article>
+          <article class="data-entity-card">
+            <span>05</span>
+            <h3>Mensaje</h3>
+            <p>Respuesta sugerida, canal preparado, asunto de email y texto copiado por el negocio.</p>
+          </article>
+          <article class="data-entity-card">
+            <span>06</span>
+            <h3>Evento de automatización</h3>
+            <p>Registro de envíos a n8n, errores, reintentos y sincronizaciones futuras.</p>
+          </article>
+        </div>
+
+        <div class="data-model-note">
+          <strong>Decisión pendiente:</strong>
+          <span>
+            elegir más adelante entre Supabase, SQLite/PostgreSQL o backend propio.
+            En esta fase solo se documenta el contrato para no bloquear la demo.
+          </span>
+        </div>
+          </section>
+
+          <section class="mvp-section" aria-labelledby="mvp-title">
+            <div class="mvp-panel">
+              <div>
+                <p class="section-kicker">Estado del producto</p>
+                <h2 id="mvp-title">MVP local hoy. SaaS real en una fase posterior.</h2>
+                <p>
+                  La demo actual sirve para presentar el valor comercial y validar
+                  el flujo. El backend real, autenticación, base de datos y panel
+                  multi-negocio se deben abordar después de cerrar modelo de datos
+                  y requisitos de seguridad.
+                </p>
+              </div>
+              <div class="mvp-list">
+                <span>Sin APIs nuevas</span>
+                <span>Sin backend real todavía</span>
+                <span>n8n separado del frontend</span>
+                <span>Preparado para evolucionar a SaaS</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="technical-roadmap" id="roadmap-demo" aria-labelledby="roadmap-demo-title">
+            <p class="section-kicker">Roadmap</p>
+            <h2 id="roadmap-demo-title">Siguientes pasos documentados</h2>
+            <ol>
+              <li>Validar el flujo de demo con negocios de servicios.</li>
+              <li>Definir el modelo de datos y permisos antes de crear backend.</li>
+              <li>Conectar automatizaciones reales solo desde servicios seguros.</li>
+            </ol>
+          </section>
+        </details>
+      </section>
+        </main>
+
+        <footer class="site-footer">
+          <p>
+            SolicitudPro Demo · datos ficticios guardados solo en este navegador.
+          </p>
+        </footer>
+      </div>
+
+      <dialog class="request-detail-dialog" id="request-detail-dialog" aria-labelledby="request-detail-title">
+        <div id="request-detail-content"></div>
+      </dialog>
+    </div>
+
+    <script src="js/demo-i18n.js"></script>
+    <script src="js/sector-presets.js"></script>
+    <script src="js/public-form-attachments.js"></script>
+    <script src="js/follow-up-rules.js"></script>
+    <script src="js/request-detail.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/data/product-data.js"></script>
+    <script src="js/real-product.js"></script>
+  </body>
+</html>

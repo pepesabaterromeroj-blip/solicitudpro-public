@@ -1,0 +1,1311 @@
+{
+  "updatedAt": "1970-01-01T00:00:00.000Z",
+  "createdAt": "1970-01-01T00:00:00.000Z",
+  "id": "PUBLIC_SOLICITUDPRO_DEV_EMAIL_WORKER_C13B_WORKFLOW_ID",
+  "name": "SolicitudPro DEV - Email Worker C13B",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "8e38e26f-4ee0-4f2b-8924-22b615b7c696",
+      "name": "Inicio manual DEV",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2736,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_PROJECT.supabase.co/functions/v1/email-job-worker/claim",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "{\"limit\": 5, \"lease_seconds\": 300}",
+        "options": {}
+      },
+      "id": "ef508cfe-988a-4cb2-867d-bb3065d06aaf",
+      "name": "Claim email jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2512,
+        80
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_ID_01",
+          "name": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_NAME_01"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "b368f7d6-c8cb-465c-8cb1-3861df3eb565",
+      "name": "Sin jobs pendientes",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -2048,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const jobs = $input.first().json.jobs;\nif (!Array.isArray(jobs)) {\n  return [];\n}\nreturn jobs.map((job) => ({\n  json: job,\n  pairedItem: { item: 0 },\n}));"
+      },
+      "id": "e21c4211-3111-47ad-acde-8ab71e2017d1",
+      "name": "Iterar jobs reclamados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2048,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.email_type }}",
+                    "rightValue": "customer_confirmation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0d6c7b8a-6664-4f90-932a-b86a414aa8d1"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "customer_confirmation"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.email_type }}",
+                    "rightValue": "business_notification",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "d66b88a4-66c5-445e-a3cf-64cbe16a93cf"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "business_notification"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "07391d44-4c06-463a-a42e-9b29dc2a3a6a",
+      "name": "Tipo de email",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1808,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "98a57e5c-5ec9-446e-88ef-68282627f59b",
+              "name": "c13_delivery_branch",
+              "value": "customer_confirmation",
+              "type": "string"
+            },
+            {
+              "id": "3fe398f4-3455-4574-af1a-942c35dc4ff7",
+              "name": "c13_delivery_status",
+              "value": "ready_to_send",
+              "type": "string"
+            },
+            {
+              "id": "5c67aa11-0f96-4781-9dbb-a21eed21c396",
+              "name": "resend_to",
+              "value": "={{ $json.context.recipient_email }}",
+              "type": "string"
+            },
+            {
+              "id": "1926f072-b045-44c3-b654-9ade0f78945c",
+              "name": "resend_from",
+              "value": "SolicitudPro <notifications@example.com>",
+              "type": "string"
+            },
+            {
+              "id": "191525f3-b04f-4d03-bbda-6626f902bca5",
+              "name": "resend_subject",
+              "value": "={{ $json.rendered.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "b2aeb465-5b72-41df-9bed-d0e91f3293e4",
+              "name": "resend_idempotency_key",
+              "value": "={{ $json.delivery_id }}",
+              "type": "string"
+            },
+            {
+              "id": "7bd78b86-1b4e-43df-9bed-d0e91f3293e4",
+              "name": "resend_text",
+              "value": "={{ $json.rendered.text }}",
+              "type": "string"
+            },
+            {
+              "id": "c16-customer-html",
+              "name": "resend_html",
+              "value": "={{ $json.rendered.html }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "e87862d4-bb5a-45b1-823d-117e35eee7f9",
+      "name": "C13B - Preparar confirmación cliente",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1536,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7ef81960-6f6f-4c67-a6d4-174e4030f230",
+              "name": "c13_delivery_branch",
+              "value": "business_notification",
+              "type": "string"
+            },
+            {
+              "id": "0b32e213-c8ec-444e-80c7-e8bd8432b0e6",
+              "name": "c13_delivery_status",
+              "value": "ready_to_send",
+              "type": "string"
+            },
+            {
+              "id": "ddafd12b-ba4c-43c8-aa95-09f27a8ae253",
+              "name": "resend_to",
+              "value": "={{ $json.context.recipient_email }}",
+              "type": "string"
+            },
+            {
+              "id": "14c1a574-1990-4ea6-be30-6159c7b7ad50",
+              "name": "resend_from",
+              "value": "SolicitudPro <notifications@example.com>",
+              "type": "string"
+            },
+            {
+              "id": "3e69d9f5-b309-432e-b995-903895fc3f72",
+              "name": "resend_subject",
+              "value": "={{ $json.rendered.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "09504e09-2970-4822-aad4-d56ffdd16231",
+              "name": "resend_idempotency_key",
+              "value": "={{ $json.delivery_id }}",
+              "type": "string"
+            },
+            {
+              "id": "6679fdb4-a51c-412d-a7f6-01e496db64a1",
+              "name": "resend_text",
+              "value": "={{ $json.rendered.text }}",
+              "type": "string"
+            },
+            {
+              "id": "c16-business-html",
+              "name": "resend_html",
+              "value": "={{ $json.rendered.html }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "249a8ac3-1825-4e00-ac44-704ff997538a",
+      "name": "C13B - Preparar aviso negocio",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1536,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2caaf3ba-22d9-4e9a-a218-187866723776",
+              "name": "c13_error_message",
+              "value": "C13B: email_type no soportado.",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "e6adb988-9e70-4f1b-8c42-34b0aa77570e",
+      "name": "Preparar fallo de tipo desconocido",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1536,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_PROJECT.supabase.co/functions/v1/email-job-worker/failed",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "job_id",
+              "value": "={{ $json.job_id }}"
+            },
+            {
+              "name": "claim_token",
+              "value": "={{ $json.claim_token }}"
+            },
+            {
+              "name": "error",
+              "value": "={{ $json.c13_error_message }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5416c407-0ac6-4719-a15a-24ce0a75101c",
+      "name": "Fallo terminal tipo desconocido",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1264,
+        304
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_ID_01",
+          "name": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_NAME_01"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## C13C — punto futuro opcional\nSi se aprueba, reutilizar el contexto normalizado y diseñar una sola generación por request para evitar duplicados entre sus dos email_jobs. No crear ni duplicar follow-ups.",
+        "width": 360,
+        "color": 5
+      },
+      "id": "15b8cc44-7258-4db3-9aee-dc40ee314ae4",
+      "name": "Nota C13C futuro",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1568,
+        -368
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $json.resend_idempotency_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=from",
+              "value": "={{ $json.resend_from }}"
+            },
+            {
+              "name": "=to",
+              "value": "={{ $json.resend_to }}"
+            },
+            {
+              "name": "subject",
+              "value": "={{ $json.resend_subject }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.resend_text }}"
+            },
+            {
+              "name": "html",
+              "value": "={{ $json.resend_html }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -1264,
+        -176
+      ],
+      "id": "2b0da88c-ba88-4081-ab98-097888b333df",
+      "name": "C13B - Enviar confirmación cliente Resend",
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_ID_02",
+          "name": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_NAME_02"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4bc24fef-aabd-4a09-9ecd-cb19e9d46b42",
+              "name": "job_id",
+              "value": "={{ $('C13B - Preparar confirmación cliente').item.json.job_id }}",
+              "type": "string"
+            },
+            {
+              "id": "c3bbad3a-73b1-4e36-9d8e-c744afbbdf15",
+              "name": "claim_token",
+              "value": "={{ $('C13B - Preparar confirmación cliente').item.json.claim_token }}",
+              "type": "string"
+            },
+            {
+              "id": "2540d7c6-d617-48e0-997a-16be55cbcb1b",
+              "name": "delivery_id",
+              "value": "={{ $('C13B - Preparar confirmación cliente').item.json.delivery_id }}",
+              "type": "string"
+            },
+            {
+              "id": "a42005f1-47d3-4119-ba0b-7732321e95f6",
+              "name": "resend_email_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -992,
+        -352
+      ],
+      "id": "91645a48-0e52-4dc7-9e25-3ec97ae7e0cf",
+      "name": "C13B - Preparar sent cliente"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_PROJECT.supabase.co/functions/v1/email-job-worker/sent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "job_id",
+              "value": "={{ $json.job_id }}"
+            },
+            {
+              "name": "claim_token",
+              "value": "={{ $json.claim_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -720,
+        -336
+      ],
+      "id": "69c6cf7a-713d-4786-92ec-c431aa65b810",
+      "name": "C13B - Marcar sent cliente",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_ID_01",
+          "name": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_NAME_01"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const source = $('C13B - Preparar confirmación cliente').item.json;\nconst err = $json ?? {};\n\nconst statusCode = Number(\n  err.statusCode ??\n  err.httpCode ??\n  err.status ??\n  err.details?.httpCode ??\n  err.details?.statusCode ??\n  err.details?.body?.statusCode ??\n  err.response?.statusCode ??\n  err.response?.status ??\n  err.error?.statusCode ??\n  err.error?.httpCode ??\n  0\n);\n\nconst rawMessage =\n  err.details?.description ??\n  err.details?.body?.message ??\n  err.error?.message ??\n  err.message ??\n  (typeof err.error === 'string' ? err.error : '') ??\n  'Error desconocido al enviar con Resend';\n\nconst safeError = String(rawMessage)\n  .replace(/Bearer\\s+[A-Za-z0-9._-]+/gi, 'Bearer [REDACTED]')\n  .replace(/re_[A-Za-z0-9_-]+/gi, 're_[REDACTED]')\n  .slice(0, 500);\n\nconst networkError =\n  statusCode === 0 &&\n  /timeout|timed out|econnreset|econnrefused|enotfound|network|socket|fetch failed/i.test(safeError);\n\nconst temporaryHttpError =\n  statusCode === 408 ||\n  statusCode === 425 ||\n  statusCode === 429 ||\n  statusCode >= 500;\n\nconst attemptCount = Math.max(1, Number(source.attempt_count ?? 1));\n\nconst retryable =\n  attemptCount < 5 &&\n  (networkError || temporaryHttpError);\n\nconst retryMinutesByAttempt = {\n  1: 2,\n  2: 10,\n  3: 30,\n  4: 60,\n};\n\nconst retryMinutes =\n  retryable\n    ? (retryMinutesByAttempt[attemptCount] ?? 60)\n    : null;\n\nreturn {\n  json: {\n    job_id: source.job_id,\n    claim_token: source.claim_token,\n    delivery_id: source.delivery_id,\n    attempt_count: attemptCount,\n    c13_error_source: 'resend',\n    c13_error_branch: 'customer_confirmation',\n    c13_error_status_code: statusCode || null,\n    c13_error_message: safeError,\n    c13_error_retryable: retryable,\n    retry_at: retryable\n      ? new Date(Date.now() + retryMinutes * 60 * 1000).toISOString()\n      : null,\n  },\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        -96
+      ],
+      "id": "c11dfbd8-a480-4a72-8854-ca8a3e989343",
+      "name": "C13B - Clasificar error Resend cliente"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b00bf46a-6191-4656-8218-7977df656be2",
+              "leftValue": "={{ $json.c13_error_retryable }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -192,
+        160
+      ],
+      "id": "f22826f4-d6c7-4d63-b443-5d33baedf42e",
+      "name": "C13B - ¿Error reintentable?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_PROJECT.supabase.co/functions/v1/email-job-worker/failed",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "job_id",
+              "value": "={{ $json.job_id }}"
+            },
+            {
+              "name": "claim_token",
+              "value": "={{ $json.claim_token }}"
+            },
+            {
+              "name": "error",
+              "value": "={{ $json.c13_error_message }}"
+            },
+            {
+              "name": "retry_at",
+              "value": "={{ $json.retry_at }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        64,
+        -80
+      ],
+      "id": "02b47d3f-f434-4686-a94d-aedcd8524fc7",
+      "name": "C13B - Programar retry cliente",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_ID_01",
+          "name": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_NAME_01"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_PROJECT.supabase.co/functions/v1/email-job-worker/failed",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "job_id",
+              "value": "={{ $json.job_id }}"
+            },
+            {
+              "name": "claim_token",
+              "value": "={{ $json.claim_token }}"
+            },
+            {
+              "name": "error",
+              "value": "={{ $json.c13_error_message }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        64,
+        208
+      ],
+      "id": "34706de1-0130-4f04-95e1-666220a10e02",
+      "name": "C13B - Fallo terminal cliente",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_ID_01",
+          "name": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_NAME_01"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4bc24fef-aabd-4a09-9ecd-cb19e9d46b42",
+              "name": "job_id",
+              "value": "={{ String($('C13B - Preparar aviso negocio').item.json.job_id).trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "c3bbad3a-73b1-4e36-9d8e-c744afbbdf15",
+              "name": "claim_token",
+              "value": "={{ String($('C13B - Preparar aviso negocio').item.json.claim_token).trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "2540d7c6-d617-48e0-997a-16be55cbcb1b",
+              "name": "delivery_id",
+              "value": "={{ $('C13B - Preparar aviso negocio').item.json.delivery_id }}",
+              "type": "string"
+            },
+            {
+              "id": "a42005f1-47d3-4119-ba0b-7732321e95f6",
+              "name": "resend_email_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -1056,
+        -48
+      ],
+      "id": "e878127a-dad9-45cc-a4a6-0e17bd9af061",
+      "name": "C13B - Preparar sent negocio"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const source = $('C13B - Preparar aviso negocio').item.json;\nconst err = $json ?? {};\n\nconst statusCode = Number(\n  err.statusCode ??\n  err.httpCode ??\n  err.status ??\n  err.details?.httpCode ??\n  err.details?.statusCode ??\n  err.details?.body?.statusCode ??\n  err.response?.statusCode ??\n  err.response?.status ??\n  err.error?.statusCode ??\n  err.error?.httpCode ??\n  0\n);\n\nconst rawMessage =\n  err.details?.description ??\n  err.details?.body?.message ??\n  err.error?.message ??\n  err.message ??\n  (typeof err.error === 'string' ? err.error : '') ??\n  'Error desconocido al enviar el aviso al negocio mediante Resend';\n\nconst safeError = String(rawMessage)\n  .replace(/Bearer\\s+[A-Za-z0-9._-]+/gi, 'Bearer [REDACTED]')\n  .replace(/re_[A-Za-z0-9_-]+/gi, 're_[REDACTED]')\n  .slice(0, 500);\n\nconst networkError =\n  statusCode === 0 &&\n  /timeout|timed out|econnreset|econnrefused|enotfound|network|socket|fetch failed/i.test(safeError);\n\nconst temporaryHttpError =\n  statusCode === 408 ||\n  statusCode === 425 ||\n  statusCode === 429 ||\n  statusCode >= 500;\n\nconst attemptCount = Math.max(1, Number(source.attempt_count ?? 1));\n\nconst retryable =\n  attemptCount < 5 &&\n  (networkError || temporaryHttpError);\n\nconst retryMinutesByAttempt = {\n  1: 2,\n  2: 10,\n  3: 30,\n  4: 60,\n};\n\nconst retryMinutes =\n  retryable\n    ? (retryMinutesByAttempt[attemptCount] ?? 60)\n    : null;\n\nreturn {\n  json: {\n    job_id: source.job_id,\n    claim_token: source.claim_token,\n    delivery_id: source.delivery_id,\n    attempt_count: attemptCount,\n    c13_error_source: 'resend',\n    c13_error_branch: 'business_notification',\n    c13_error_status_code: statusCode || null,\n    c13_error_message: safeError,\n    c13_error_retryable: retryable,\n    retry_at: retryable\n      ? new Date(Date.now() + retryMinutes * 60 * 1000).toISOString()\n      : null,\n  },\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1056,
+        128
+      ],
+      "id": "e71d5e21-0949-4f33-a103-35c0842357ea",
+      "name": "- Clasificar error Resend negocio"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b00bf46a-6191-4656-8218-7977df656be2",
+              "leftValue": "={{ $json.c13_error_retryable }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -880,
+        176
+      ],
+      "id": "f45c4bf1-560b-496a-83fe-a2fe4f903bc0",
+      "name": "C13B - ¿Error negocio reintentable?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_PROJECT.supabase.co/functions/v1/email-job-worker/failed",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "job_id",
+              "value": "={{ $json.job_id }}"
+            },
+            {
+              "name": "claim_token",
+              "value": "={{ $json.claim_token }}"
+            },
+            {
+              "name": "error",
+              "value": "={{ $json.c13_error_message }}"
+            },
+            {
+              "name": "retry_at",
+              "value": "={{ $json.retry_at }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -640,
+        144
+      ],
+      "id": "022c6587-523d-4192-8790-3a31e332b1b7",
+      "name": "Programar retry negocio",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_ID_01",
+          "name": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_NAME_01"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_PROJECT.supabase.co/functions/v1/email-job-worker/failed",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "job_id",
+              "value": "={{ $json.job_id }}"
+            },
+            {
+              "name": "claim_token",
+              "value": "={{ $json.claim_token }}"
+            },
+            {
+              "name": "error",
+              "value": "={{ $json.c13_error_message }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -640,
+        288
+      ],
+      "id": "ecef3eb8-7283-4bd3-bfb4-2578441c8d91",
+      "name": "Fallo terminal negocio",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_ID_01",
+          "name": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_NAME_01"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $json.resend_idempotency_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=from",
+              "value": "={{ $json.resend_from }}"
+            },
+            {
+              "name": "=to",
+              "value": "={{ $json.resend_to }}"
+            },
+            {
+              "name": "subject",
+              "value": "={{ $json.resend_subject }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.resend_text }}"
+            },
+            {
+              "name": "html",
+              "value": "={{ $json.resend_html }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -1280,
+        32
+      ],
+      "id": "67a378dd-35c2-4732-88dd-2eef38a181d3",
+      "name": "C13B - Enviar aviso negocio Resend1",
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_ID_02",
+          "name": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_NAME_02"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_PROJECT.supabase.co/functions/v1/email-job-worker/sent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "job_id",
+              "value": "={{ String($json.job_id).trim() }}"
+            },
+            {
+              "name": "claim_token",
+              "value": "={{ String($json.claim_token).trim() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -720,
+        -32
+      ],
+      "id": "c4902a22-ff88-40e6-847d-aace2b08c073",
+      "name": "C13B - Marcar sent negocio",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_ID_01",
+          "name": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_NAME_01"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "solicitudpro-dev-email-worker-wake",
+        "authentication": "headerAuth",
+        "options": {
+          "noResponseBody": true,
+          "responseCode": {
+            "values": {
+              "responseCode": "customCode",
+              "customCode": 202
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2624,
+        -128
+      ],
+      "id": "3b8c6605-bc03-43b2-a0aa-144b8a40da44",
+      "name": "C13B - Webhook wake DEV",
+      "webhookId": "00000000-0000-4000-8000-000000000001",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_ID_03",
+          "name": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_NAME_03"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8da22de5-9a68-4c15-bef2-d84716cd8db4",
+              "leftValue": "={{ Array.isArray($json.jobs) ? $json.jobs.length : 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b62ed15d-ea31-4a0d-b74d-6eaefb77071a",
+      "name": "¿Hay jobs?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2224,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -2608,
+        288
+      ],
+      "id": "30719ab9-e10d-4e81-ae1e-ead4cf08d965",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "connections": {
+    "Inicio manual DEV": {
+      "main": [
+        [
+          {
+            "node": "Claim email jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim email jobs": {
+      "main": [
+        [
+          {
+            "node": "¿Hay jobs?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Iterar jobs reclamados": {
+      "main": [
+        [
+          {
+            "node": "Tipo de email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tipo de email": {
+      "main": [
+        [
+          {
+            "node": "C13B - Preparar confirmación cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "C13B - Preparar aviso negocio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar fallo de tipo desconocido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C13B - Preparar confirmación cliente": {
+      "main": [
+        [
+          {
+            "node": "C13B - Enviar confirmación cliente Resend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C13B - Preparar aviso negocio": {
+      "main": [
+        [
+          {
+            "node": "C13B - Enviar aviso negocio Resend1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar fallo de tipo desconocido": {
+      "main": [
+        [
+          {
+            "node": "Fallo terminal tipo desconocido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C13B - Enviar confirmación cliente Resend": {
+      "main": [
+        [
+          {
+            "node": "C13B - Preparar sent cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "C13B - Clasificar error Resend cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C13B - Preparar sent cliente": {
+      "main": [
+        [
+          {
+            "node": "C13B - Marcar sent cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C13B - Clasificar error Resend cliente": {
+      "main": [
+        [
+          {
+            "node": "C13B - ¿Error reintentable?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C13B - ¿Error reintentable?": {
+      "main": [
+        [
+          {
+            "node": "C13B - Programar retry cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "C13B - Fallo terminal cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C13B - Preparar sent negocio": {
+      "main": [
+        [
+          {
+            "node": "C13B - Marcar sent negocio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "- Clasificar error Resend negocio": {
+      "main": [
+        [
+          {
+            "node": "C13B - ¿Error negocio reintentable?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C13B - ¿Error negocio reintentable?": {
+      "main": [
+        [
+          {
+            "node": "Programar retry negocio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallo terminal negocio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C13B - Enviar aviso negocio Resend1": {
+      "main": [
+        [
+          {
+            "node": "C13B - Preparar sent negocio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "- Clasificar error Resend negocio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C13B - Webhook wake DEV": {
+      "main": [
+        [
+          {
+            "node": "Claim email jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Hay jobs?": {
+      "main": [
+        [
+          {
+            "node": "Iterar jobs reclamados",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sin jobs pendientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Claim email jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "PUBLIC_SOLICITUDPRO_DEV_ERROR_HANDLER_WORKFLOW_ID",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true,
+    "timezone": "Europe/Madrid"
+  },
+  "staticData": null,
+  "meta": {},
+  "pinData": {},
+  "versionId": "00000000-0000-4000-8000-000000000001",
+  "triggerCount": 0,
+  "tags": []
+}

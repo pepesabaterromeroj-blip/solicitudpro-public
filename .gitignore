@@ -1,0 +1,54 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.credentials
+*.secret
+*.token
+credentials/
+credentials.*
+secrets/
+secrets.*
+
+# Dependencies, build output and caches
+node_modules/
+vendor/
+dist/
+build/
+coverage/
+.cache/
+.parcel-cache/
+.turbo/
+.eslintcache
+*.tsbuildinfo
+
+# Logs and temporary runtime files
+*.log
+*.bak
+*.backup
+*.dump
+*.sql.gz
+*.bundle
+logs/
+backups/
+tmp/
+temp/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editors and local tooling
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

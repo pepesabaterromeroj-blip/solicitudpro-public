@@ -1,0 +1,88 @@
+{
+  "name": "SolicitudPro DEV - Follow-up Basic C15A",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1,
+              "triggerAtMinute": 37
+            }
+          ]
+        }
+      },
+      "id": "ee8e6181-c191-4098-862f-9f24823fd9fb",
+      "name": "C15A - Schedule horario 00:37",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_PROJECT.supabase.co/functions/v1/follow-up-basic-worker/process",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "{\"limit\":100}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "c8f38d9c-1208-4b6f-85b0-e6e7076e7549",
+      "name": "C15A - Procesar hitos pendientes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        260,
+        0
+      ],
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "REPLACE_WITH_HTTPHEADERAUTH_CREDENTIAL_ID_08",
+          "name": "REPLACE_WITH_HTTPCUSTOMAUTH_CREDENTIAL_NAME_05"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "C15A - Schedule horario 00:37": {
+      "main": [
+        [
+          {
+            "node": "C15A - Procesar hitos pendientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "PUBLIC_SOLICITUDPRO_DEV_ERROR_HANDLER_WORKFLOW_ID",
+    "timezone": "Europe/Madrid",
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all"
+  },
+  "tags": []
+}

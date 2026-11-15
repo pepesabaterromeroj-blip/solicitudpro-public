@@ -1,0 +1,274 @@
+{
+  "updatedAt": "1970-01-01T00:00:00.000Z",
+  "createdAt": "1970-01-01T00:00:00.000Z",
+  "id": "PUBLIC_SOLICITUDPRO_DEV_ERROR_HANDLER_WORKFLOW_ID",
+  "name": "SolicitudPro DEV - Error Handler",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "93a60142-b0c0-4836-9b03-b692f7481270",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function sanitize(value) {\n  return String(value || 'Error no especificado')\n    .replace(/[\\u0000-\\u001f\\u007f]+/g, ' ')\n    .replace(/\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b/gi, '[email]')\n    .replace(/\\bAuthorization\\s*[:=]\\s*(?:Bearer\\s+)?[^\\s,;]+/gi, 'Authorization=[redacted]')\n    .replace(/\\bBearer\\s+[A-Za-z0-9._~+/=-]+/gi, 'Bearer [redacted]')\n    .replace(/\\b[a-z_]*(?:role|key|token|password|secret|credential)[a-z_]*\\s*[:=]\\s*[^\\s,;]+/gi, '[redacted]')\n    .replace(/\\bsb_[a-z]+_[A-Za-z0-9_-]+/gi, '[redacted]')\n    .replace(/\\bre_[A-Za-z0-9_-]+/gi, 're_[redacted]')\n    .replace(/\\s+/g, ' ')\n    .trim()\n    .slice(0, 500);\n}\n\nreturn $input.all().map((item) => ({\n  json: {\n    occurred_at: new Date().toISOString(),\n    workflow_name: sanitize(item.json.workflow?.name || 'No especificado'),\n    failed_node: sanitize(\n      item.json.execution?.lastNodeExecuted ||\n      item.json.trigger?.error?.node?.name ||\n      'No especificado'\n    ),\n    execution_id: sanitize(item.json.execution?.id || 'No especificado'),\n    error_message: sanitize(\n      item.json.execution?.error?.message ||\n      item.json.trigger?.error?.message ||\n      item.json.trigger?.error?.cause?.message\n    ),\n    handling_status: 'pending_output_configuration',\n  },\n}));"
+      },
+      "id": "a8a5c0fd-fa1c-49e5-90e1-ada12157655c",
+      "name": "Sanear error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "REPLACE_WITH_DATA_TABLE_ID",
+          "cachedResultName": "SolicitudPro DEV - Alertas operativas"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "workflow": "={{ $json.workflow_name }}",
+            "execution_id": "={{ $json.execution_id }}",
+            "node": "={{ $json.failed_node }}",
+            "timestamp": "={{ $json.occurred_at }}",
+            "message": "={{ $json.error_message }}"
+          },
+          "schema": [
+            {
+              "id": "workflow",
+              "displayName": "workflow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "execution_id",
+              "displayName": "execution_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "node",
+              "displayName": "node",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {
+          "optimizeBulk": false
+        }
+      },
+      "id": "f8017f46-1732-4704-a53f-319010ef47ba",
+      "name": "Registrar alerta operativa DEV",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        64,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "notifications@example.com",
+        "subject": "=[SolicitudPro DEV] Error en {{ $json.workflow }}",
+        "message": "=SolicitudPro DEV\nworkflow: {{ $json.workflow }}\nexecution_id: {{ $json.execution_id }}\nnode: {{ $json.node }}\ntimestamp: {{ $json.timestamp }}\nmessage: {{ $json.message }}{{ $json.execution_url ? '\\nexecution_url: ' + $json.execution_url : '' }}",
+        "options": {
+          "appendAttribution": false
+        },
+        "resource": "message",
+        "operation": "send",
+        "emailType": "text"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        240
+      ],
+      "id": "55a61753-8ba5-4003-8514-203a6b83ea64",
+      "name": "Send a message",
+      "webhookId": "00000000-0000-4000-8000-000000000002",
+      "disabled": false,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_WITH_GMAILOAUTH2_CREDENTIAL_ID_04",
+          "name": "REPLACE_WITH_GMAILOAUTH2_CREDENTIAL_NAME_04"
+        }
+      }
+    },
+    {
+      "id": "99c8cb1d-b6b0-4e0b-be6b-0cc18253f111",
+      "name": "Buscar alertas iguales (15 min)",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        320,
+        240
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "REPLACE_WITH_DATA_TABLE_ID",
+          "cachedResultName": "SolicitudPro DEV - Alertas operativas"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "workflow",
+              "condition": "eq",
+              "keyValue": "={{ $json.workflow }}"
+            },
+            {
+              "keyName": "node",
+              "condition": "eq",
+              "keyValue": "={{ $json.node }}"
+            },
+            {
+              "keyName": "message",
+              "condition": "eq",
+              "keyValue": "={{ $json.message }}"
+            },
+            {
+              "keyName": "timestamp",
+              "condition": "gte",
+              "keyValue": "={{ new Date(new Date($json.timestamp).getTime() - 15 * 60 * 1000).toISOString() }}"
+            }
+          ]
+        },
+        "returnAll": true
+      }
+    },
+    {
+      "id": "b9e45e54-84c9-46ed-be66-a73fed025594",
+      "name": "Anti-spam operativo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        240
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const current = $('Registrar alerta operativa DEV').first().json;\nconst matching = $input.all().map(item => item.json).filter(row => row.id !== undefined);\nconst currentId = Number(current.id);\nif (!Number.isFinite(currentId) || !matching.some(row => Number(row.id) === currentId)) return [];\nif (matching.some(row => Number(row.id) !== currentId && new Date(row.timestamp).getTime() <= new Date(current.timestamp).getTime())) return [];\nconst executionId = String(current.execution_id || '');\nconst executionUrl = /^\\d+$/.test(executionId) && current.workflow === 'SolicitudPro DEV - Email Worker C13B'\n  ? `https://n8n.example.invalid/workflow/PUBLIC_SOLICITUDPRO_DEV_EMAIL_WORKER_C13B_WORKFLOW_ID/executions/${executionId}` : '';\nreturn [{json: {workflow: current.workflow, execution_id: executionId, node: current.node, timestamp: current.timestamp, message: current.message, execution_url: executionUrl}}];"
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sanear error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sanear error": {
+      "main": [
+        [
+          {
+            "node": "Registrar alerta operativa DEV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar alerta operativa DEV": {
+      "main": [
+        [
+          {
+            "node": "Buscar alertas iguales (15 min)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar alertas iguales (15 min)": {
+      "main": [
+        [
+          {
+            "node": "Anti-spam operativo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anti-spam operativo": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true,
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "meta": {},
+  "pinData": {},
+  "versionId": "00000000-0000-4000-8000-000000000002",
+  "triggerCount": 0,
+  "tags": []
+}
